@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<style type="text/css">
+		* {
+			margin: 0;
+		}
+	</style>>
+	<title>Document</title>
+</head>
+<body>
+<input id="loadfile" type="file">
+<div id="container"></div>
+<script src="js/three.js"></script>
+<script src="js/Projector.js"></script>
+<script src="js/CanvasRenderer.js"></script>
+<script>
+	// //做任何事情之前都要先创建AudioContext对象，因为一切都发生在这个环境之中
+	var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+	//AudioBufferSourceNode接口可以通过AudioBuffer对象来播放音频数据
+	var AudioBufferSourceNode = audioCtx.createBufferSource();
+	//AnalyserNode节点可以提供实时的频率及时间域分析的信息
+	var AnalyserNode = audioCtx.createAnalyser();
+	AnalyserNode.fftSize = 1024;
+
+
+	//获取音频数据 ArrayBuffer数据可以通过XMLHttpRequest或者FileReader来获取。
+	document.getElementById('loadfile').onchange = function() {
+		var file = this.files[0];
+		var fr = new FileReader();
+
+		fr.onload = function(e) {
+			audioCtx.decodeAudioData(e.target.result, function(buffer){
+				playFun(buffer);
+			}, function(err){
+				console.log(err);
+			})
+		}
+		fr.readAsArrayBuffer(file);
+	}
+	//播放音频数据
+	function playFun(buffer){
+		AudioBufferSourceNode.buffer = buffer;
+		AudioBufferSourceNode.connect(audioCtx.destination);
+		AudioBufferSourceNode.connect(AnalyserNode);
+		AudioBufferSourceNode.loop = false;
+		AudioBufferSourceNode.start(0);
+		requestAnimationFrame(fn);
+	}
+	//用于存放音频数据的数组，其长度是fftsize的一半
+	var arr = new Uint8Array(AnalyserNode.frequencyBinCount);
+	requestAnimationFrame = window.requestAnimationFrame ||
+            window.webkitrequestAnimationFrame ||
+            window.mozrequestAnimationFrame;//兼容
+    function fn(){
+    	AnalyserNode.getByteFrequencyData(arr); //将音频频域数据复制到传入的Uint8Array数组
+    	//AnalyserNode.getByteTimeDomainData(arr); //将音频时域数据复制到传入的Uint8Array数组
+    	three.render(arr);
+    	requestAnimationFrame(fn);
+    }
+    function draw(arr){
+    	
+    }
+
+
+    var three = {
+    	WIDTH: window.innerWidth,
+    	HEIGHT: window.innerHeight,
+    	starArr: [],
+    	circleArr: [],
+    	wnum: 40,
+    	hnum: 40,
+    	radius: 30,
+    	program : function ( context ) {
+
+			context.beginPath();
+			context.arc( 0, 0, 0.5, 0, Math.PI * 2, true );
+			context.fill();
+
+		},
+
+    	createSprite: function(){
+
+    		var self = this;
+    		var ball = new THREE.SphereGeometry( this.radius, this.wnum, this.hnum );
+    		this.vl = ball.vertices.length;
+    		
+			var circleGroup = new THREE.Group();
+    		for (var i = 0; i < this.vl; i++) {
+    			var material = new THREE.SpriteCanvasMaterial( {
+					color: 0x55FFE7,
+					program: self.program,
+					opacity: Math.random()
+				} );
+				particle = new THREE.Sprite( material );
+				particle.position.x = ball.vertices[i].x;
+				particle.position.y = ball.vertices[i].y;
+				particle.position.z = ball.vertices[i].z;
+				particle.scale.setScalar(.5);
+				this.starArr.push(ball.vertices[i]);
+				if (i%(this.wnum-1)) {
+					circleGroup.add(particle);
+				}else{
+					this.group.add(circleGroup);
+					circleGroup = new THREE.Group();
+					circleGroup.add(particle);
+				}
+    		}
+    		this.group.add(circleGroup);
+    		console.log(this.starArr.length);
+    	},
+    	init: function(){
+    		//this.renderer = new THREE.WebGLRenderer( { antialias: false} );
+    		this.renderer = new THREE.CanvasRenderer( { antialias: false} );
+			this.scene = new THREE.Scene();
+			this.group = new THREE.Group();
+			this.camera = new THREE.PerspectiveCamera( 30, this.WIDTH / this.HEIGHT, 1, 500 );
+			this.camera.position.y = 300;
+			this.camera.rotation.x = -Math.PI/2; 
+
+			this.renderer.setPixelRatio( window.devicePixelRatio );
+			this.renderer.setSize( this.WIDTH, this.HEIGHT );
+			//this.renderer.setClearColor( 0x000000, 0 );
+			this.container = document.getElementById( 'container' );
+			this.container.appendChild( this.renderer.domElement );
+			this.renderer.render( this.scene, this.camera );
+
+			this.createSprite();
+			this.scene.add(this.group);
+			this.render();
+			//this.animate();
+    	},
+    	animate : function(arr){
+			requestAnimationFrame( this.animate.bind(this) );
+			this.render(arr);
+		},
+		render : function(arr){
+			if (arr && arr[0] > 80) {
+				
+				var step = Math.round(arr.length / this.group.children.length);
+		    	
+		    	var deg = arr[0]*0.0001;
+				//this.camera.rotation.z +=  deg;
+				var sum = arr.slice(0,10).reduce(function(pre,cur){
+					return pre + cur;
+				});
+				
+				for (var i = 0, k = 0; i < this.group.children.length; i++,k++) {
+					var d = arr[i]*0.001 * (i - this.group.children.length/2);
+
+					this.group.children[i].rotation.y = d;
+					//this.group.children[i].rotation.z = d*2;
+					var child = this.group.children[i].children;
+					for (var j = 0; j< child.length; j++,k++) {
+						var scale = 1 + arr[j]*0.002;
+						if (this.starArr[k]) {
+							this.group.children[i].children[j].position.x = this.starArr[k].x * scale;
+							this.group.children[i].children[j].position.z = this.starArr[k].z * scale;
+						}
+					}
+
+				}
+				// if (sum > 1500) {
+					this.group.scale.setScalar(1+sum/10000);
+				// }else{
+				// 	this.group.scale.setScalar(1);
+				// }
+			}
+			this.renderer.render( this.scene, this.camera );
+		}
+    }
+
+    three.init();
+</script>
+</body>
+</html>
