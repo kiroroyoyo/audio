@@ -69,8 +69,8 @@
     	HEIGHT: window.innerHeight,
     	starArr: [],
     	circleArr: [],
-    	wnum: 30,
-    	hnum: 30,
+    	wnum: 8,
+    	hnum: 5,
     	radius: 30,
     	program : function ( context ) {
 
@@ -90,24 +90,24 @@
     		for (var i = 0; i < this.vl; i++) {
     			var material = new THREE.SpriteCanvasMaterial( {
 					color: 0x55FFE7,
-					program: self.program,
-					opacity: Math.random()
+					program: self.program
 				} );
 				particle = new THREE.Sprite( material );
 				particle.position.x = ball.vertices[i].x;
 				particle.position.y = ball.vertices[i].y;
 				particle.position.z = ball.vertices[i].z;
-				particle.scale.setScalar(.5);
 				this.starArr.push(ball.vertices[i]);
-				if (i%(this.wnum+1)) {
-					circleGroup.add(particle);
-				}else{
+				if ((i+1)%(this.wnum) == 1) {
 					this.group.add(circleGroup);
+				}
+				if (i%(this.wnum)) {
+					circleGroup.add(particle);
+				}
+				else{
+					circleGroup.add(particle);
 					circleGroup = new THREE.Group();
 				}
     		}
-    		this.group.add(circleGroup);
-    		console.log(this.vl);
     	},
     	init: function(){
     		//this.renderer = new THREE.WebGLRenderer( { antialias: false} );

@@ -83,7 +83,7 @@
     	createSprite: function(){
 
     		var self = this;
-    		var ball = new THREE.SphereGeometry( this.radius, this.wnum, this.hnum );
+    		var ball = new THREE.CircleGeometry( this.radius, this.wnum );
     		this.vl = ball.vertices.length;
     		
 			var circleGroup = new THREE.Group();
@@ -91,7 +91,7 @@
     			var material = new THREE.SpriteCanvasMaterial( {
 					color: 0x55FFE7,
 					program: self.program,
-					opacity: Math.random()
+					opacity: Math.random()*0.5 + 0.5
 				} );
 				particle = new THREE.Sprite( material );
 				particle.position.x = ball.vertices[i].x;
@@ -115,8 +115,7 @@
 			this.scene = new THREE.Scene();
 			this.group = new THREE.Group();
 			this.camera = new THREE.PerspectiveCamera( 30, this.WIDTH / this.HEIGHT, 1, 500 );
-			this.camera.position.y = 300;
-			this.camera.rotation.x = -Math.PI/2; 
+			this.camera.position.z = 300;
 
 			this.renderer.setPixelRatio( window.devicePixelRatio );
 			this.renderer.setSize( this.WIDTH, this.HEIGHT );
