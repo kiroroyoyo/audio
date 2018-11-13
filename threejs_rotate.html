@@ -22,7 +22,7 @@
 	var AudioBufferSourceNode = audioCtx.createBufferSource();
 	//AnalyserNode节点可以提供实时的频率及时间域分析的信息
 	var AnalyserNode = audioCtx.createAnalyser();
-	AnalyserNode.fftSize = 1024;
+	AnalyserNode.fftSize = 512;
 
 
 	//获取音频数据 ArrayBuffer数据可以通过XMLHttpRequest或者FileReader来获取。
@@ -69,8 +69,8 @@
     	HEIGHT: window.innerHeight,
     	starArr: [],
     	circleArr: [],
-    	wnum: 40,
-    	hnum: 40,
+    	wnum: 30,
+    	hnum: 30,
     	radius: 30,
     	program : function ( context ) {
 
@@ -107,8 +107,8 @@
 					circleGroup.add(particle);
 				}
     		}
-    		this.group.add(circleGroup);
-    		console.log(this.starArr.length);
+    		//this.group.add(circleGroup);
+    		console.log(this.vl);
     	},
     	init: function(){
     		//this.renderer = new THREE.WebGLRenderer( { antialias: false} );
@@ -136,33 +136,38 @@
 			this.render(arr);
 		},
 		render : function(arr){
-			if (arr && arr[0] > 80) {
+			if (arr && arr[0] > 50) {
 				
-				var step = Math.round(arr.length / this.group.children.length);
+				var time = 0;
+				if (time > 10) {
+					time --;
+				}
+				if (time < 1) {
+					time ++;
+				}
 		    	
 		    	var deg = arr[0]*0.0001;
-				this.camera.rotation.z +=  deg;
+				//this.camera.rotation.z +=  deg;
 				var sum = arr.slice(0,10).reduce(function(pre,cur){
 					return pre + cur;
 				});
 				
 				for (var i = 0, k = 0; i < this.group.children.length; i++,k++) {
-					var d = arr[i]*0.001 * (i - this.group.children.length/2);
+					var d = arr[i]*0.02 * (i - this.group.children.length/2)/this.group.children.length;
 
 					this.group.children[i].rotation.y = d;
-					//this.group.children[i].rotation.z = d*2;
-					var child = this.group.children[i].children;
-					for (var j = 0; j< child.length; j++,k++) {
-						var scale = 1 + arr[j]*0.002;
-						if (this.starArr[k]) {
-							this.group.children[i].children[j].position.x = this.starArr[k].x * scale;
-							this.group.children[i].children[j].position.z = this.starArr[k].z * scale;
-						}
-					}
+					// var child = this.group.children[i].children;
+					// for (var j = 0; j< child.length; j++,k++) {
+					// 	var scale = 1 + arr[j]*0.002;
+					// 	if (this.starArr[k]) {
+					// 		this.group.children[i].children[j].position.x = this.starArr[k].x * scale;
+					// 		this.group.children[i].children[j].position.z = this.starArr[k].z * scale;
+					// 	}
+					// }
 
 				}
 				// if (sum > 1500) {
-					this.group.scale.setScalar(1+sum/10000);
+					this.group.scale.setScalar(1 + sum/5000);
 				// }else{
 				// 	this.group.scale.setScalar(1);
 				// }
