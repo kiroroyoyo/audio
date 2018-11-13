@@ -141,7 +141,7 @@
 				var step = Math.round(arr.length / this.group.children.length);
 		    	
 		    	var deg = arr[0]*0.0001;
-				//this.camera.rotation.z +=  deg;
+				this.camera.rotation.z +=  deg;
 				var sum = arr.slice(0,10).reduce(function(pre,cur){
 					return pre + cur;
 				});
